@@ -60,6 +60,6 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 ## Contact
 
-Your Name - [@xception89](https://twitter.com/xception89) - sagarsgopale@gmail.com
+[@xception89](https://twitter.com/xception89) - sagarsgopale@gmail.com
 
 Project Link: [https://github.com/gopalesagar/crypto-portfolio](https://github.com/gopalesagar/crypto-portfolio)
