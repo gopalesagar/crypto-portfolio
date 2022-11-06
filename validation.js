@@ -6,7 +6,7 @@ const isValidDate = (date) => {
 }
 
 const isValidToken = (token) => {
-    if(!isIn(token, process.env.VALID_TOKENS.split(','))) { throw new Error(`Invalid token provided. Please provide token value from ETH, BTC or XRP`); }
+    if(!isIn(token, process.env.VALID_TOKENS.split(','))) { throw new Error(`Invalid token provided. Please provide token value from ${process.env.VALID_TOKENS}`); }
 }
 
 module.exports = {

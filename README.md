@@ -41,7 +41,7 @@ Clone the project. The main branch has the latest updated code.
   ```sh
   node portfolio.js
   ```
-* Fetch portfolio value for a token in the csv
+* Fetch portfolio value for a token in the csv. If no data is found for any valid token then fetches portfolio for all the available tokens.
   ```sh
   node portfolio.js --token=<TOKEN_NAME>
   ```
