@@ -3,6 +3,7 @@ const { createReadStream } = require('fs');
 const { getCoinCurrentValue } = require('./service');
 const { DateTime } = require('luxon');
 const sourceFilePath = process.env.PORTFOLIO_CSV_FILE;
+let rlInterface;
 
 /**
  * 
@@ -20,9 +21,10 @@ const getRealineInterface = async (filePath) => {
  * @returns {Object} Object with start and end of the day in seconds
  */
 const getStartAndEndOfDateInSeconds = async (date) => {
+    const dateTime = DateTime.fromISO(date);
     return {
-        start: DateTime.fromISO(date).startOf('day').toSeconds(),
-        end: DateTime.fromISO(date).endOf('day').toSeconds()
+        start: dateTime.startOf('day').toSeconds(),
+        end: dateTime.endOf('day').toSeconds()
     }
 }
 
@@ -36,7 +38,7 @@ const getLineData = (line) => line.split(process.env.DELIMITER);
  * 
  * @param {Object} resultData Data that has to be processed 
  * @param {string} token Token by which data has to be filtered if provided
- * @returns 
+ * @returns {Object}
  */
 const getFilteredResult = async (resultData, token) => {
     const priceResult = await getCoinCurrentValue(Object.keys(resultData));
@@ -55,7 +57,7 @@ const getFilteredResult = async (resultData, token) => {
  */
 const getCoinPortfolioValues = async (token) => {
     return new Promise(async (resolve) => {
-        const rlInterface = await getRealineInterface(sourceFilePath);
+        rlInterface = await getRealineInterface(sourceFilePath);
         let result = {};
         rlInterface.on('line', async (line) => {
             const lineData = getLineData(line);
@@ -85,7 +87,7 @@ const getCoinPortfolioValues = async (token) => {
  */
 const getPortfolioValueByDate = async (date, token) => {
     return new Promise(async (resolve) => {
-        const rlInterface = await getRealineInterface(sourceFilePath);
+        rlInterface = await getRealineInterface(sourceFilePath);
         let result = {};
         
         const dateRange = await getStartAndEndOfDateInSeconds(date);

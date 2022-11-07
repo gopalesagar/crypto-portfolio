@@ -25,7 +25,9 @@ The project uses API from CryptoCompare to fetch current price of a token in USD
 * Hence, readline was used along with read stream. This resulted in reading file line by line much faster. 
 * Without any logic, the reading of the whole file would complete faster. It took ~6 seconds for the csv provided in assignment.
 
-### 
+### Date Processing
+* In case of date processing, the timestamp seconds value of start and end of the day for the date provided is considered.
+* Timestamp is considered in seconds and not milliseconds. This is given in the requirement and not an assumption.
 
 ## Getting Started
 
