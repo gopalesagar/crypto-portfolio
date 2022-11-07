@@ -12,8 +12,8 @@ The project uses API from CryptoCompare to fetch current price of a token in USD
 
 ### Validation
 * The input parameters are validated
-** ```token``` parameter is validated against VALID_TOKENS env variable.
-** ```date``` parameter is validated to be in format YYYY-MM-DD
+* ```token``` parameter is validated against VALID_TOKENS env variable.
+* ```date``` parameter is validated to be in format YYYY-MM-DD
 
 ### Using Read Stream
 * The first approach was to use read streams because as the trading transactions data csv file can be very large. 
