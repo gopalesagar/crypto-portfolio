@@ -2,21 +2,56 @@ require('dotenv').config();
 const { createReadStream } = require('fs');
 const { getCoinCurrentValue } = require('./service');
 const { DateTime } = require('luxon');
+const sourceFilePath = process.env.PORTFOLIO_CSV_FILE;
 
 /**
  * 
+ * @returns {Object} Readline interface for a csv file
+ */
+const getRealineInterface = async (filePath) => {
+    return require('readline').createInterface({
+        input: createReadStream(filePath)
+    });
+}
+
+/**
+ * 
+ * @param {string} date ISO date string
+ * @returns {Object} Object with start and end of the day in seconds
+ */
+const getStartAndEndOfDateInSeconds = async (date) => {
+    return {
+        start: DateTime.fromISO(date).startOf('day').toSeconds(),
+        end: DateTime.fromISO(date).endOf('day').toSeconds()
+    }
+}
+
+/**
+ * 
+ * @param {string} line Csv file line string
+ */
+const getLineData = (line) => line.split(process.env.DELIMITER);
+
+const getFilteredResult = async (resultData, token) => {
+    const priceResult = await getCoinCurrentValue(Object.keys(resultData));
+    for(key in resultData) {
+        const currentCoin = resultData[key];
+        currentCoin.portfolioValue = `${currentCoin.amount * priceResult[key].USD} USD`;
+    }
+    const filteredResult = token ? resultData[token] : resultData;
+    return filteredResult;
+}
+/**
+ * 
  * @param {string} token Token name for which portfolio value is requested
- * @returns A Promise with portfolio value by token or for all tokens
+ * @returns {Promise} Portfolio value by a token or for all tokens
  */
 const getCoinPortfolioValues = async (token) => {
-    return new Promise(function (resolve, reject) {
-        const rlInterface = require('readline').createInterface({
-            input: createReadStream(process.env.PORTFOLIO_CSV_FILE)
-        });
+    return new Promise(async (resolve) => {
+        const rlInterface = await getRealineInterface(sourceFilePath);
         let result = {};
-        rlInterface.on('line', async (line, lineCount, byteCount) => {
-
-            let lineData = line.split(process.env.DELIMITER);
+        rlInterface.on('line', async (line) => {
+            const lineData = getLineData(line);
             const coin = lineData[2];
             if(coin !== 'token') {
                 const tradeType = lineData[1];
@@ -30,13 +65,7 @@ const getCoinPortfolioValues = async (token) => {
         })
 
         rlInterface.on('close', async () => {
-            const priceResult = await getCoinCurrentValue(Object.keys(result));
-            for(key in result) {
-                const currentCoin = result[key];
-                currentCoin.portfolioValue = `${currentCoin.amount * priceResult[key].USD} USD`;
-            }
-            const f = token ? result[token] : result;
-            resolve(f || result);
+            resolve(await getFilteredResult(result, token));
         });
     });
 }
@@ -45,24 +74,22 @@ const getCoinPortfolioValues = async (token) => {
  * 
  * @param {string} date Date string in YYYY-MM-DD format
  * @param {string} token Token name for which portfolio value is requested
- * @returns A Promise with portfolio value by date and token or only date
+ * @returns {Promise} Portfolio value by date and token or only date
  */
 const getPortfolioValueByDate = async (date, token) => {
-    return new Promise(function (resolve, reject) {
-        const rlInterface = require('readline').createInterface({
-            input: createReadStream(process.env.PORTFOLIO_CSV_FILE)
-        });
+    return new Promise(async (resolve) => {
+        const rlInterface = await getRealineInterface(sourceFilePath);
         let result = {};
         
-        const dateRangeStart = DateTime.fromISO(date).startOf('day').toMillis();
-        const dateRangeEnd = DateTime.fromISO(date).endOf('day').toMillis();
+        const dateRange = await getStartAndEndOfDateInSeconds(date);
+
         rlInterface.on('line', async (line) => {
-            let lineData = line.split(process.env.DELIMITER);
-            
+            let lineData = getLineData(line);
+
             const coin = lineData[2];
             if(coin !== 'token') {
                 const timestamp = lineData[0];
-                if (timestamp >= dateRangeStart && timestamp <= dateRangeEnd) {
+                if (timestamp >= dateRange.start && timestamp <= dateRange.end) {
                     const tradeType = lineData[1];
                     const amount = lineData[3];
                     let currentCountResult = result[coin] || { amount: 0 };
@@ -75,13 +102,7 @@ const getPortfolioValueByDate = async (date, token) => {
         })
 
         rlInterface.on('close', async () => {
-            const priceResult = await getCoinCurrentValue(Object.keys(result));
-            for(key in result) {
-                const currentCoin = result[key];
-                currentCoin.portfolioValue = `${currentCoin.amount * priceResult[key].USD} USD`;
-            }
-            const f = token ? result[token] : result;
-            resolve(f);
+            resolve(await getFilteredResult(result, token));
         });
     });
 }

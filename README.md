@@ -1,7 +1,31 @@
 ## About The Project
 
-This nodejs based command line utility reads crypto trading data from a csv file and fetched portfolio values as per parameters.
+This nodejs based command line utility reads crypto trading transactions data from a csv file and fetched portfolio values as per parameters.
 The project uses API from CryptoCompare to fetch current price of a token in USD.
+
+## Design Decisions Those Were Tried & Used
+
+### Functions Required
+* The requirement was categorized into 2 functions. One helper function works on only token related processing, while other works on date & token related processing.
+* Service layer is present to make external API calls.
+* Environment variables are present to avoid hard coding
+
+### Validation
+* The input parameters are validated
+** ```token``` parameter is validated against VALID_TOKENS env variable.
+** ```date``` parameter is validated to be in format YYYY-MM-DD
+
+### Using Read Stream
+* The first approach was to use read streams because as the trading transactions data csv file can be very large. 
+* Reading the file without streams can cause cause nodejs to go out of memory. 
+* By using read stream the file could be read in chunks but the problem here is that, it does not give data line by line which adds up to more logic and can hit performance.
+
+### Addition of ```readline``` module
+* The readline module of Node.Js creates interface to read a file line by line. 
+* Hence, readline was used along with read stream. This resulted in reading file line by line much faster. 
+* Without any logic, the reading of the whole file would complete faster. It took ~6 seconds for the csv provided in assignment.
+
+### 
 
 ## Getting Started
 
@@ -18,8 +42,9 @@ Clone the project. The main branch has the latest updated code.
   DELIMITER=','
   CRYPTOCOMPARE_API=https://min-api.cryptocompare.com/data/pricemulti
   CRYPTOCOMPARE_COST_FIAT=USD
-  CRYPTOCOMPARE_API_KEY=<Your CryptoCompare API key here>
+  CRYPTOCOMPARE_API_KEY=<CRYPTO_COMPARE_API_KEY>
   VALID_TOKENS=ETH,BTC,XRP
+  VALID_DATE_FORMAT='yyyy-MM-dd'
   ```
 * Place your csv file in the project repository. The csv format should match the existing transactions.csv file existing in the project. Provide the file path in the .env file created above.
 
@@ -41,7 +66,7 @@ Clone the project. The main branch has the latest updated code.
   ```sh
   node portfolio.js
   ```
-* Fetch portfolio value for a token in the csv. If no data is found for any valid token then fetches portfolio for all the available tokens.
+* Fetch portfolio value for a token in the csv
   ```sh
   node portfolio.js --token=<TOKEN_NAME>
   ```
