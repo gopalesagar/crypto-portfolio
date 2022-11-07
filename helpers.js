@@ -32,11 +32,18 @@ const getStartAndEndOfDateInSeconds = async (date) => {
  */
 const getLineData = (line) => line.split(process.env.DELIMITER);
 
+/**
+ * 
+ * @param {Object} resultData Data that has to be processed 
+ * @param {string} token Token by which data has to be filtered if provided
+ * @returns 
+ */
 const getFilteredResult = async (resultData, token) => {
     const priceResult = await getCoinCurrentValue(Object.keys(resultData));
     for(key in resultData) {
         const currentCoin = resultData[key];
         currentCoin.portfolioValue = `${currentCoin.amount * priceResult[key].USD} USD`;
+        if(token) currentCoin.token = token;
     }
     const filteredResult = token ? resultData[token] : resultData;
     return filteredResult;
